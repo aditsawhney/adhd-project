@@ -1,0 +1,24 @@
+feature,mean_abs_shap
+Inattentive,1.3247342
+Gender_Female,0.35065356
+IQ Measure_3.0,0.34265357
+Hyper/Impulsive,0.24697259
+Full4 IQ,0.23989075
+Med Status_1.0,0.18544109
+has_secondary_dx,0.10743957
+Age,0.09360186
+Performance IQ,0.056050014
+IQ Measure_2.0,0.031171726
+IQ Measure_1.0,0.02559544
+Verbal IQ,0.022662807
+IQ Measure_5.0,0.007810602
+Gender_Male,0.0
+Handedness_Left,0.0
+Handedness_Mixed,0.0
+Full2 IQ,0.0
+IQ Measure_4.0,0.0
+Med Status_2.0,0.0
+ADHD Measure_1.0,0.0
+ADHD Measure_2.0,0.0
+ADHD Measure_3.0,0.0
+Handedness_Right,0.0

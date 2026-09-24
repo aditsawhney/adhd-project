@@ -1,0 +1,29 @@
+=== Model A test-set metrics ===
+
+f1: 0.9091
+roc_auc: 0.9717
+avg_precision: 0.9652
+accuracy: 0.9316
+adhd_precision: 0.9286
+adhd_recall: 0.8904
+
+              precision    recall  f1-score   support
+
+     control       0.93      0.96      0.95       117
+        ADHD       0.93      0.89      0.91        73
+
+    accuracy                           0.93       190
+   macro avg       0.93      0.92      0.93       190
+weighted avg       0.93      0.93      0.93       190
+
+
+=== Model A fairness audit ===
+
+By sex:
+  Female   (N= 72,  22.2% ADHD): F1=0.8276, ROC-AUC=0.9699
+  Male     (N=118,  48.3% ADHD): F1=0.9298, ROC-AUC=0.9718
+
+By age band:
+  <10    (N= 66,  48.5% ADHD): F1=0.9180, ROC-AUC=0.9733
+  10-13  (N= 75,  36.0% ADHD): F1=0.9434, ROC-AUC=0.9900
+  14+    (N= 49,  28.6% ADHD): F1=0.8276, ROC-AUC=0.9490

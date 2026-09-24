@@ -1,0 +1,9 @@
+model,val_f1,best_params,fit_seconds
+XGBoost,0.9154929577464789,"{'clf__learning_rate': 0.01, 'clf__max_depth': 4, 'clf__n_estimators': 300, 'clf__subsample': 1.0}",0.54
+RandomForest,0.8843537414965986,"{'clf__max_depth': None, 'clf__min_samples_split': 5, 'clf__n_estimators': 300}",0.73
+ExtraTrees,0.8707482993197279,"{'clf__max_depth': 20, 'clf__min_samples_split': 2, 'clf__n_estimators': 100}",0.53
+SVM,0.8609271523178808,"{'clf__C': 10, 'clf__gamma': 'scale', 'clf__kernel': 'rbf'}",0.06
+LogisticRegression,0.8496732026143791,{'clf__C': 10},0.03
+LDA,0.8296296296296296,{'clf__solver': 'lsqr'},0.02
+QDA,0.7770700636942676,{'clf__reg_param': 0.1},0.03
+NaiveBayes,0.6488888888888888,{'clf__var_smoothing': 1e-07},0.03

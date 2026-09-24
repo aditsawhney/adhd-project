@@ -1,0 +1,8 @@
+model,val_f1,best_params,fit_seconds
+ExtraTrees,0.8695652173913043,"{'clf__max_depth': 10, 'clf__min_samples_split': 5, 'clf__n_estimators': 200}",0.49
+RandomForest,0.868421052631579,"{'clf__max_depth': None, 'clf__min_samples_split': 5, 'clf__n_estimators': 100}",1.97
+SVM,0.8421052631578947,"{'clf__C': 10, 'clf__gamma': 'scale', 'clf__kernel': 'rbf'}",0.05
+QDA,0.671875,{'clf__reg_param': 0.01},0.02
+NaiveBayes,0.608,{'clf__var_smoothing': 1e-09},0.02
+LDA,0.5739130434782609,{'clf__solver': 'svd'},0.02
+LogisticRegression,0.535031847133758,{'clf__C': 10},0.03

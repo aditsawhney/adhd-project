@@ -1,0 +1,33 @@
+[project]
+name = "adhd-project"
+version = "0.1.0"
+description = "NeuroNova ADHD pre-screening/classification research paper — Model A (extended) and Model B (pre-assessment-only)"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "imbalanced-learn",
+    "joblib",
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "scikit-learn",
+    "seaborn",
+    "shap",
+    "uvicorn",
+    "xgboost",
+]
+
+[project.optional-dependencies]
+dev = [
+    "jupyter",
+    "ipykernel",
+    "pytest",
+    "ruff",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
