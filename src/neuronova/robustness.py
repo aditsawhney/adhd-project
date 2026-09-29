@@ -235,6 +235,35 @@ def main():
     fig.savefig(OUT / "site_robustness.png", dpi=150)
     plt.close(fig)
 
+    # figure: per-site LOSO recall and ROC-AUC, Model A vs Model B --
+    # the pooled figure above averages site 4's total failure away with
+    # sites that generalize fine, so it's invisible there; this isn't.
+    site_df = pd.concat(site_tables)
+    plot_variants = ["B", "A"]
+    site_ids = sorted(site_df["site"].unique())
+    fig, axes = plt.subplots(1, 2, figsize=(10, 3.8))
+    w = 0.35
+    for ax, metric, title in zip(axes, ["recall", "auc"], ["Recall", "ROC-AUC"]):
+        for i, v in enumerate(plot_variants):
+            sub = site_df[site_df.variant == v].set_index("site").reindex(site_ids)
+            vals = sub[metric].values
+            xs = np.arange(len(site_ids)) + (i - 0.5) * w
+            bars = ax.bar(xs, np.nan_to_num(vals), w, label=v)
+            for x, val, n in zip(xs, vals, sub["n"].values):
+                if np.isnan(val):
+                    ax.text(x, 0.02, "n/a", ha="center", fontsize=7, rotation=90)
+        ax.set_xticks(range(len(site_ids)))
+        ax.set_xticklabels([f"Site {s}\n(n={int(site_df[(site_df.site==s)&(site_df.variant=='A')]['n'].iloc[0])})"
+                            for s in site_ids], fontsize=8)
+        ax.set_title(f"Leave-one-site-out {title}")
+        ax.set_ylim(0, 1.05)
+        ax.axhline(1.0, color="gray", lw=0.5, ls=":")
+    axes[0].legend(fontsize=8)
+    fig.suptitle("Per-site performance when that site is held out entirely", fontsize=10)
+    fig.tight_layout()
+    fig.savefig(OUT / "site_robustness_detail.png", dpi=150)
+    plt.close(fig)
+
     lines = ["=== Test-set metrics with paired-bootstrap 95% intervals ===",
              ci.round(4).to_string(index=False), "",
              "=== Paired differences ===", diff.round(4).to_string(index=False), "",
