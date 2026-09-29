@@ -1,10 +1,11 @@
 # ADHD Classification & Fairness Audit
 
 Research project on ADHD classification using the ADHD-200 phenotypic
-dataset, built around a specific question: **how much predictive value
-does full clinical/phenotypic data add over what's known before any
-clinical contact occurs**, and **how fair is each approach across sex and
-age**?
+dataset, built around three questions: **how much predictive value does
+full clinical/phenotypic data add over what's known before any clinical
+contact occurs**, **how fair is each approach across sex and age**, and
+**how well does either approach generalize to a site it wasn't trained
+on**.
 
 This is the corrected, dual-model successor to an earlier team notebook
 that — as documented below — had label leakage. The pipeline here is
@@ -37,25 +38,63 @@ This rebuild fixes all of the above — see `src/neuronova/data.py`'s
 Phase 0 audit for the actual leakage/redundancy numbers, and
 `src/neuronova/train.py` for the calibration and scoring fixes.
 
+## Cross-site generalization — headline finding
+
+Random-split and 5-fold cross-validation both mix all seven acquisition
+sites into every train/test partition, so they measure performance on
+sites the model has already seen data from. Leave-one-site-out evaluation
+(train on six sites, test on the seventh, repeated for every site) tells
+a very different story:
+
+| Evaluation | Model B ROC-AUC | Model A ROC-AUC |
+|---|---:|---:|
+| Random split | 0.948 | 0.972 |
+| 5-fold CV | 0.949 | 0.975 |
+| **Leave-one-site-out** | **0.757** | **0.764** |
+
+Two sites fail outright, for two independent reasons:
+- **Site 1** (245 participants) used a different behavioral rating
+  instrument (scored 9–36) than the other six sites (scored 40–90), with
+  both stored in the same column. A model trained on the 40–90 range reads
+  site 1's scores as uniformly low-risk — recall drops to ~0.02.
+- **Site 4** (73 participants) has zero subscore coverage. When held out,
+  every participant there receives the same median-imputed value for the
+  model's most important feature, and the model defaults to the majority
+  class — recall = 0.000.
+
+Ablating the two fields most likely to encode site identity (`IQ Measure`,
+`ADHD Measure`) does *not* materially change Model A's performance
+(bootstrap 95% CI on the difference includes zero) — so Model A's edge
+over Model B is not a site-identity shortcut, but the underlying
+cross-site generalization gap is real and substantial regardless of
+feature set.
+
+Full numbers, per-site breakdown, and paired-bootstrap confidence
+intervals: `reports/robustness/`.
+
 ## Repo structure
 
 ```
 adhd-project/
 ├── data/
-│   ├── raw/                     # original CSV, untouched by code
-│   └── processed/                # train/val/test splits (generated)
+│   ├── raw/                       # original CSV, untouched by code
+│   └── processed/                  # train/val/test splits (generated)
 ├── src/neuronova/
-│   ├── data.py                   # cleaning + Phase 0 leakage/redundancy audit
-│   ├── features.py                # both preprocessors + the locked 60/20/20 split
-│   ├── train.py                   # model selection (8 classifiers) + calibrated ensembles
-│   ├── evaluate.py                # test-set metrics, plots, permutation importance, fairness audit
-│   └── shap_analysis.py           # secondary SHAP check on a standalone tree model
-├── models/                       # trained .joblib artifacts (generated)
-├── reports/                      # metrics, plots, audit text (generated)
+│   ├── data.py                     # cleaning + Phase 0 leakage/redundancy audit
+│   ├── features.py                  # both preprocessors + the locked 60/20/20 split
+│   ├── train.py                     # model selection (8 classifiers) + calibrated ensembles
+│   ├── evaluate.py                  # test-set metrics, plots, permutation importance, fairness audit
+│   ├── shap_analysis.py             # secondary SHAP check on a standalone tree model
+│   └── robustness.py                # bootstrap CIs, ablations, 5-fold CV vs. leave-one-site-out
+├── tests/
+│   └── test_pipeline.py             # guards against leakage, bad splits, mis-coded fields
+├── models/                         # trained .joblib artifacts (generated)
+├── reports/                        # metrics, plots, audit text (generated)
 │   ├── model_a/
 │   ├── model_b/
-│   └── comparison_report.csv     # the A-vs-B headline comparison
-├── notebooks/                    # original team notebook (reference)
+│   ├── robustness/                  # bootstrap CIs, LOSO results, site-level breakdown
+│   └── comparison_report.csv        # the A-vs-B headline comparison
+├── notebooks/                      # original team notebook (reference)
 ├── pyproject.toml
 └── uv.lock
 ```
@@ -84,17 +123,23 @@ isn't bundled on macOS.
 Run in order — each phase depends on the previous one's output:
 
 ```bash
-uv run --env-file .env python src/neuronova/data.py       # Phase 0: clean + audit
-uv run --env-file .env python src/neuronova/features.py   # Phase 1: locked split + preprocessors
-uv run --env-file .env python src/neuronova/train.py       # Phase 2: model selection + calibration
-uv run --env-file .env python src/neuronova/evaluate.py    # Phase 4: test metrics + fairness audit
-uv run --env-file .env python src/neuronova/shap_analysis.py  # Phase 6: SHAP secondary check
+uv run --env-file .env python src/neuronova/data.py        # Phase 0: clean + audit
+uv run --env-file .env python src/neuronova/features.py    # Phase 1: locked split + preprocessors
+uv run --env-file .env python src/neuronova/train.py        # Phase 2: model selection + calibration
+uv run --env-file .env python src/neuronova/evaluate.py     # Phase 4: test metrics + fairness audit
+uv run --env-file .env python src/neuronova/shap_analysis.py   # Phase 6: SHAP secondary check
+uv run --env-file .env python src/neuronova/robustness.py      # bootstrap CIs + leave-one-site-out
 ```
 
-`features.py`, `train.py`, and `evaluate.py` regenerate everything in
-`data/processed/`, `models/`, and `reports/` — safe to re-run from
-scratch at any time; the split is deterministic (`random_state=42`
-throughout).
+`features.py`, `train.py`, `evaluate.py`, and `robustness.py` regenerate
+everything in `data/processed/`, `models/`, and `reports/` — safe to
+re-run from scratch at any time; the split is deterministic
+(`random_state=42` throughout).
+
+Guard tests (leakage checks, split integrity, correct sex coding):
+```bash
+uv run --env-file .env python -m pytest -q tests
+```
 
 ## Fairness audit — headline findings
 
@@ -112,3 +157,12 @@ Full breakdowns: `reports/model_a/audit_report.txt`, `reports/model_b/audit_repo
 ADHD-200 Consortium, *ADHD-200 Sample*, The International Neuroimaging
 Data-Sharing Initiative (INDI), 2012.
 http://fcon1000.projects.nitrc.org/indi/adhd200/
+
+## Authorship
+
+All code, modeling, and analysis in this repository — the leakage audit,
+the dual feature-set design, the calibrated ensembles, the fairness audit,
+and the cross-site robustness analysis — was built independently. This
+repository is the technical basis for an in-progress research paper;
+academic collaborators are contributing to the paper's writing, framing,
+and review, but the codebase and results here are solely authored.
