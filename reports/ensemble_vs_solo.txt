@@ -1,0 +1,16 @@
+=== Ensemble vs. single best model, both feature sets ===
+
+feature_set                                                  approach                     scheme     f1  roc_auc  avg_precision  accuracy
+          B     Ensemble (top3=['ExtraTrees', 'RandomForest', 'SVM'])               test (n=190) 0.8919   0.9481         0.9401    0.9158
+          B     Ensemble (top3=['ExtraTrees', 'RandomForest', 'SVM'])          5-fold CV (n=947) 0.8651   0.9487         0.9425    0.9029
+          B     Ensemble (top3=['ExtraTrees', 'RandomForest', 'SVM']) leave-one-site-out (n=947) 0.6378   0.7569         0.7610    0.7793
+          B                                    Solo best (ExtraTrees)               test (n=190) 0.8690   0.9470         0.9379    0.9000
+          B                                    Solo best (ExtraTrees)          5-fold CV (n=947) 0.8601   0.9454         0.9379    0.8997
+          B                                    Solo best (ExtraTrees) leave-one-site-out (n=947) 0.6353   0.7087         0.7421    0.7793
+          A Ensemble (top3=['XGBoost', 'RandomForest', 'ExtraTrees'])               test (n=190) 0.9091   0.9717         0.9652    0.9316
+          A Ensemble (top3=['XGBoost', 'RandomForest', 'ExtraTrees'])          5-fold CV (n=947) 0.9086   0.9753         0.9676    0.9324
+          A Ensemble (top3=['XGBoost', 'RandomForest', 'ExtraTrees']) leave-one-site-out (n=947) 0.6816   0.7639         0.7668    0.8046
+          A                                       Solo best (XGBoost)               test (n=190) 0.9241   0.9642         0.9620    0.9421
+          A                                       Solo best (XGBoost)          5-fold CV (n=947) 0.8921   0.9637         0.9587    0.9208
+          A                                       Solo best (XGBoost) leave-one-site-out (n=947) 0.6793   0.7107         0.7511    0.8036
+
