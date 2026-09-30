@@ -1,0 +1,9 @@
+variant,top3,scheme,f1,roc_auc,avg_precision,accuracy
+B (current: no XGBoost),"['ExtraTrees', 'RandomForest', 'SVM']",validation (best candidate),0.8695652173913043,,,
+B (current: no XGBoost),"['ExtraTrees', 'RandomForest', 'SVM']",test (n=190),0.8918918918918919,0.948132537173633,0.940112966907774,0.9157894736842105
+B (current: no XGBoost),"['ExtraTrees', 'RandomForest', 'SVM']",5-fold CV (n=947),0.8651026392961877,0.9486754497804222,0.9425127438509061,0.9028511087645196
+B (current: no XGBoost),"['ExtraTrees', 'RandomForest', 'SVM']",leave-one-site-out (n=947),0.6377816291161178,0.7568564952542853,0.7610146109723639,0.7793030623020063
+B + XGBoost candidate,"['XGBoost', 'ExtraTrees', 'RandomForest']",validation (best candidate),0.8888888888888888,,,
+B + XGBoost candidate,"['XGBoost', 'ExtraTrees', 'RandomForest']",test (n=190),0.8843537414965986,0.9494204425711275,0.9450896168052222,0.9105263157894737
+B + XGBoost candidate,"['XGBoost', 'ExtraTrees', 'RandomForest']",5-fold CV (n=947),0.8596750369276218,0.9494545969684091,0.9446719161828776,0.8996832101372756
+B + XGBoost candidate,"['XGBoost', 'ExtraTrees', 'RandomForest']",leave-one-site-out (n=947),0.6576271186440678,0.711890258299098,0.7521473666497086,0.7866948257655755

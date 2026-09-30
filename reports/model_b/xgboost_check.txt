@@ -1,0 +1,12 @@
+=== Does including XGBoost help Model B? ===
+
+                variant                                      top3                      scheme     f1  roc_auc  avg_precision  accuracy
+B (current: no XGBoost)     ['ExtraTrees', 'RandomForest', 'SVM'] validation (best candidate) 0.8696      NaN            NaN       NaN
+B (current: no XGBoost)     ['ExtraTrees', 'RandomForest', 'SVM']                test (n=190) 0.8919   0.9481         0.9401    0.9158
+B (current: no XGBoost)     ['ExtraTrees', 'RandomForest', 'SVM']           5-fold CV (n=947) 0.8651   0.9487         0.9425    0.9029
+B (current: no XGBoost)     ['ExtraTrees', 'RandomForest', 'SVM']  leave-one-site-out (n=947) 0.6378   0.7569         0.7610    0.7793
+  B + XGBoost candidate ['XGBoost', 'ExtraTrees', 'RandomForest'] validation (best candidate) 0.8889      NaN            NaN       NaN
+  B + XGBoost candidate ['XGBoost', 'ExtraTrees', 'RandomForest']                test (n=190) 0.8844   0.9494         0.9451    0.9105
+  B + XGBoost candidate ['XGBoost', 'ExtraTrees', 'RandomForest']           5-fold CV (n=947) 0.8597   0.9495         0.9447    0.8997
+  B + XGBoost candidate ['XGBoost', 'ExtraTrees', 'RandomForest']  leave-one-site-out (n=947) 0.6576   0.7119         0.7521    0.7867
+
