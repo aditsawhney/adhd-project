@@ -1,0 +1,27 @@
+=== Subgroup metrics with 95% bootstrap intervals ===
+
+model             group   n  adhd    f1  f1_lo  f1_hi   auc  auc_lo  auc_hi
+    B            Female  72    16 0.867  0.696  0.973 0.932   0.828   1.000
+    B              Male 118    57 0.898  0.835  0.949 0.942   0.889   0.981
+    B          under 10  66    32 0.935  0.863  0.986 0.972   0.932   1.000
+    B             10-13  75    27 0.909  0.818  0.980 0.962   0.896   1.000
+    B       14 and over  49    14 0.774  0.583  0.919 0.888   0.753   0.980
+    B under 14 (pooled) 141    59 0.923  0.865  0.966 0.964   0.928   0.993
+    A            Female  72    16 0.828  0.636  0.952 0.970   0.926   0.997
+    A              Male 118    57 0.930  0.871  0.973 0.972   0.934   0.998
+    A          under 10  66    32 0.918  0.831  0.983 0.973   0.935   0.998
+    A             10-13  75    27 0.943  0.867  1.000 0.990   0.965   1.000
+    A       14 and over  49    14 0.828  0.636  0.957 0.949   0.873   0.998
+    A under 14 (pooled) 141    59 0.930  0.875  0.972 0.978   0.954   0.995
+
+=== Gaps between groups ===
+
+model                                  gap  metric  estimate  ci_low  ci_high  excludes_zero
+    B          sex gap (Female minus Male)      F1    -0.032  -0.220    0.101          False
+    B          sex gap (Female minus Male) ROC-AUC    -0.010  -0.122    0.075          False
+    B age gap (14 and over minus under 14)      F1    -0.149  -0.344    0.007          False
+    B age gap (14 and over minus under 14) ROC-AUC    -0.077  -0.218    0.026          False
+    A          sex gap (Female minus Male)      F1    -0.102  -0.293    0.031          False
+    A          sex gap (Female minus Male) ROC-AUC    -0.002  -0.052    0.043          False
+    A age gap (14 and over minus under 14)      F1    -0.102  -0.305    0.036          False
+    A age gap (14 and over minus under 14) ROC-AUC    -0.029  -0.109    0.025          False
