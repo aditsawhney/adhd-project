@@ -37,6 +37,8 @@ We also checked whether Model A's advantage comes from fields that mostly encode
 
 Full numbers, the per-site breakdown, and bootstrap confidence intervals are in `reports/robustness/`.
 
+We also tried the obvious repair for site 1, standardizing the two scores within whichever rating instrument produced them (`src/neuronova/instrument_harmonization.py`). It doesn't work for the held-out case, and it can't. Site 1 is the only site that used its instrument, so when it's held out there is no data left to learn that instrument's scale from. Site 1 recall stays at 0.01 to 0.02 for both models, and overall leave-one-site-out ROC-AUC barely moves for Model B (0.757 to 0.760) and drops for Model A (0.764 to 0.742). Fixing it would need information outside this dataset, like published conversions between the two instruments or a common instrument at collection time.
+
 ## Model selection was tested, not assumed
 
 Two design choices that were originally just inherited from an earlier build, excluding XGBoost from Model B and soft-voting three models instead of deploying one, were each re-tested properly rather than taken on faith. Every check ran across validation, held-out test, 5-fold CV, and leave-one-site-out.
@@ -62,7 +64,9 @@ adhd-project/
 │   ├── shap_analysis.py             # SHAP check for both models, each on its own top-ranked tree model
 │   ├── robustness.py                # bootstrap CIs, ablations, 5-fold CV vs. leave-one-site-out
 │   ├── xgboost_check.py             # tests whether XGBoost actually helps Model B (it doesn't)
-│   └── ensemble_check.py            # tests soft-voted ensemble vs. solo best model, both feature sets
+│   ├── ensemble_check.py            # tests soft-voted ensemble vs. solo best model, both feature sets
+│   ├── subgroup_ci.py               # bootstrap intervals on the sex and age-band results and their gaps
+│   └── instrument_harmonization.py  # tries standardizing scores within rating instrument (negative result)
 ├── tests/
 │   └── test_pipeline.py             # guards against leakage, bad splits, mis-coded fields
 ├── models/                         # trained .joblib artifacts (generated)
@@ -107,6 +111,8 @@ uv run --env-file .env python src/neuronova/shap_analysis.py   # Phase 6: SHAP, 
 uv run --env-file .env python src/neuronova/robustness.py      # bootstrap CIs + leave-one-site-out
 uv run --env-file .env python src/neuronova/xgboost_check.py   # is XGBoost worth adding to Model B?
 uv run --env-file .env python src/neuronova/ensemble_check.py  # is the ensemble worth it vs. solo?
+uv run --env-file .env python src/neuronova/subgroup_ci.py     # intervals on the fairness gaps
+uv run --env-file .env python src/neuronova/instrument_harmonization.py  # does fixing the score scales help?
 ```
 
 `features.py`, `train.py`, `evaluate.py`, `robustness.py`, `xgboost_check.py`, and `ensemble_check.py` all regenerate their outputs under `data/processed/`, `models/`, and `reports/`, so it's safe to rerun any of them from scratch. The split is deterministic (`random_state=42` throughout), so results should match across machines.
@@ -118,7 +124,7 @@ uv run --env-file .env python -m pytest -q tests
 
 ## Fairness audit
 
-Both models perform worst in the 14+ age band (Model A F1 of 0.828, Model B F1 of 0.774), which lines up with the Conners behavioral subscales being normed mostly on younger children. Model A also shows a wider sex-based F1 gap than Model B (0.102 vs. 0.031 difference), but the female subgroup in the test set is only 72 people, so this needs replication before we'd call it a stable finding. Details are in `reports/model_a/audit_report.txt` and `reports/model_b/audit_report.txt`.
+Both models score lowest in the 14+ age band (Model A F1 of 0.828, Model B F1 of 0.774), and Model A shows a wider sex-based F1 gap than Model B (0.102 vs. 0.031). Neither result is established, though. The test set has only 72 girls (16 with ADHD) and 49 people aged 14 or over (14 with ADHD), and the bootstrap interval on every one of these gaps includes zero (`reports/subgroup_gaps.csv`). Model B's age-gap F1 interval only just does, with an upper bound of 0.007, so that one is the most suggestive. We treat both as things to check on a larger test set. Per-group point estimates are in `reports/model_a/audit_report.txt` and `reports/model_b/audit_report.txt`, and intervals are in `reports/subgroup_ci.csv`.
 
 ## Dataset
 
