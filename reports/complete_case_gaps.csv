@@ -1,0 +1,9 @@
+feature_set,scheme,metric,ci_note,ci_low,ci_high
+B,5-fold CV,F1,real minus imputed,0.61043212812436,0.8534766265894728
+B,5-fold CV,ROC-AUC,real minus imputed,0.21453779144459062,0.36955073813271555
+B,leave-one-site-out,F1,real minus imputed,0.61398519154244,0.7654797399677404
+B,leave-one-site-out,ROC-AUC,real minus imputed,0.2983996651939864,0.48671778983507336
+A,5-fold CV,F1,real minus imputed,0.21346006128792694,0.4402641025479513
+A,5-fold CV,ROC-AUC,real minus imputed,0.05534044425024517,0.13157933822728066
+A,leave-one-site-out,F1,real minus imputed,0.4792134955127339,0.7183810533131448
+A,leave-one-site-out,ROC-AUC,real minus imputed,0.27432068876381127,0.45962747520959857

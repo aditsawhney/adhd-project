@@ -1,0 +1,37 @@
+=== Part 1: all-rows models, split by whether the score was real ===
+
+feature_set             scheme          group   n  adhd  prevalence    f1  roc_auc  avg_precision  accuracy  f1_lo  f1_hi  auc_lo  auc_hi
+          B          5-fold CV    real scores 636   302       0.475 0.946    0.988          0.986     0.948  0.927  0.962   0.981   0.994
+          B          5-fold CV imputed scores 311    60       0.193 0.213    0.698          0.396     0.810  0.092  0.333   0.616   0.773
+          B          5-fold CV       all rows 947   362       0.382 0.865    0.949          0.943     0.903  0.837  0.891   0.933   0.962
+          B leave-one-site-out    real scores 636   302       0.475 0.743    0.811          0.854     0.802  0.699  0.784   0.778   0.845
+          B leave-one-site-out imputed scores 311    60       0.193 0.046    0.418          0.167     0.733  0.000  0.115   0.329   0.505
+          B leave-one-site-out       all rows 947   362       0.382 0.638    0.757          0.761     0.779  0.592  0.683   0.722   0.789
+          A          5-fold CV    real scores 636   302       0.475 0.955    0.991          0.990     0.958  0.937  0.971   0.985   0.996
+          A          5-fold CV imputed scores 311    60       0.193 0.634    0.899          0.700     0.881  0.512  0.739   0.859   0.935
+          A          5-fold CV       all rows 947   362       0.382 0.909    0.975          0.968     0.932  0.885  0.930   0.966   0.983
+          A leave-one-site-out    real scores 636   302       0.475 0.752    0.833          0.861     0.800  0.712  0.793   0.800   0.865
+          A leave-one-site-out imputed scores 311    60       0.193 0.147    0.464          0.236     0.814  0.034  0.265   0.380   0.550
+          A leave-one-site-out       all rows 947   362       0.382 0.682    0.764          0.767     0.805  0.634  0.723   0.729   0.796
+
+=== Real-minus-imputed difference, 95% bootstrap interval ===
+
+feature_set             scheme  metric            ci_note  ci_low  ci_high
+          B          5-fold CV      F1 real minus imputed   0.610    0.853
+          B          5-fold CV ROC-AUC real minus imputed   0.215    0.370
+          B leave-one-site-out      F1 real minus imputed   0.614    0.765
+          B leave-one-site-out ROC-AUC real minus imputed   0.298    0.487
+          A          5-fold CV      F1 real minus imputed   0.213    0.440
+          A          5-fold CV ROC-AUC real minus imputed   0.055    0.132
+          A leave-one-site-out      F1 real minus imputed   0.479    0.718
+          A leave-one-site-out ROC-AUC real minus imputed   0.274    0.460
+
+=== Part 2: trained and evaluated on complete cases only ===
+
+feature_set                                       scheme   n    f1  roc_auc  avg_precision  accuracy
+          B                         test, complete cases 131 0.939    0.981          0.977     0.939
+          B                    5-fold CV, complete cases 636 0.945    0.989          0.987     0.948
+          B leave-one-site-out, complete cases (4 sites) 636 0.744    0.770          0.837     0.796
+          A                         test, complete cases 131 0.962    0.993          0.992     0.962
+          A                    5-fold CV, complete cases 636 0.964    0.994          0.993     0.965
+          A leave-one-site-out, complete cases (4 sites) 636 0.751    0.791          0.847     0.799

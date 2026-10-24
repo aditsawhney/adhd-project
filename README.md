@@ -39,6 +39,8 @@ Full numbers, the per-site breakdown, and bootstrap confidence intervals are in 
 
 We also tried the obvious repair for site 1, standardizing the two scores within whichever rating instrument produced them (`src/neuronova/instrument_harmonization.py`). It doesn't work for the held-out case, and it can't. Site 1 is the only site that used its instrument, so when it's held out there is no data left to learn that instrument's scale from. Site 1 recall stays at 0.01 to 0.02 for both models, and overall leave-one-site-out ROC-AUC barely moves for Model B (0.757 to 0.760) and drops for Model A (0.764 to 0.742). Fixing it would need information outside this dataset, like published conversions between the two instruments or a common instrument at collection time.
 
+One more check (`src/neuronova/complete_case_check.py`) splits the results by whether a participant's behaviour scores were actually recorded. 311 of the 947 participants have no scores, because three sites never collected them, and those get a median value. The headline numbers turn out to blend two very different groups. With recorded scores, 5-fold ROC-AUC is 0.988 for Model B and 0.991 for Model A. With imputed scores it is 0.698 and 0.899. On the recorded-score group the two models are nearly the same, so most of Model A's lead in the pooled results comes from participants whose scores were missing, and with a site held out that lead disappears (both models land near chance on those participants). The cross-site gap itself does not go away on the recorded-score group: leave-one-site-out ROC-AUC there is 0.811 for Model B and 0.833 for Model A, against about 0.99 within sites. Results are in `reports/complete_case_by_group.csv`.
+
 ## Model selection was tested, not assumed
 
 Two design choices that were originally just inherited from an earlier build, excluding XGBoost from Model B and soft-voting three models instead of deploying one, were each re-tested properly rather than taken on faith. Every check ran across validation, held-out test, 5-fold CV, and leave-one-site-out.
@@ -66,7 +68,8 @@ adhd-project/
 │   ├── xgboost_check.py             # tests whether XGBoost actually helps Model B (it doesn't)
 │   ├── ensemble_check.py            # tests soft-voted ensemble vs. solo best model, both feature sets
 │   ├── subgroup_ci.py               # bootstrap intervals on the sex and age-band results and their gaps
-│   └── instrument_harmonization.py  # tries standardizing scores within rating instrument (negative result)
+│   ├── instrument_harmonization.py  # tries standardizing scores within rating instrument (negative result)
+│   └── complete_case_check.py       # splits results by whether behaviour scores were recorded or imputed
 ├── tests/
 │   └── test_pipeline.py             # guards against leakage, bad splits, mis-coded fields
 ├── models/                         # trained .joblib artifacts (generated)
@@ -113,6 +116,7 @@ uv run --env-file .env python src/neuronova/xgboost_check.py   # is XGBoost wort
 uv run --env-file .env python src/neuronova/ensemble_check.py  # is the ensemble worth it vs. solo?
 uv run --env-file .env python src/neuronova/subgroup_ci.py     # intervals on the fairness gaps
 uv run --env-file .env python src/neuronova/instrument_harmonization.py  # does fixing the score scales help?
+uv run --env-file .env python src/neuronova/complete_case_check.py       # do imputed scores inflate the results?
 ```
 
 `features.py`, `train.py`, `evaluate.py`, `robustness.py`, `xgboost_check.py`, and `ensemble_check.py` all regenerate their outputs under `data/processed/`, `models/`, and `reports/`, so it's safe to rerun any of them from scratch. The split is deterministic (`random_state=42` throughout), so results should match across machines.
