@@ -1,10 +1,10 @@
 """
 Phase 1: leakage-safe preprocessing for both feature sets.
 
-Model B = pre-assessment-only (what's live in the deployed app)
-Model A = extended clinical/phenotypic set, minus everything that's
-          label-derived (DX_3, ScanDir ID, DX, Site) or a near-proxy
-          for the label (ADHD Index — see reports/phase0 audit)
+Model B = pre-assessment-only: age, sex, handedness and the two subscores
+Model A = extended clinical/phenotypic set, minus the diagnosis, the row
+          identifier and the site, and minus ADHD Index, which is a
+          near-proxy for the label (see the audit in data.py)
 """
 import sys
 from pathlib import Path

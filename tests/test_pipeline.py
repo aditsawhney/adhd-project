@@ -1,7 +1,7 @@
 """
-Guards against the problems found in the earlier notebook: label-derived or
-identifier columns among the inputs, preprocessing fitted on held-out rows,
-overlapping splits, and mis-coded sex. Run from the repo root: pytest -q
+Guards against common pipeline mistakes: label-derived or identifier columns
+among the inputs, preprocessing fitted on held-out rows, overlapping splits,
+and mis-coded sex. Run from the repo root: pytest -q
 """
 import sys
 from pathlib import Path

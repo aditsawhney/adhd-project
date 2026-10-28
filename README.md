@@ -2,7 +2,9 @@
 
 This project looks at ADHD classification on the ADHD-200 phenotypic dataset, and tries to answer three things: how much predictive value full clinical data adds over what's known before any clinical contact, how fair each approach is across sex and age, and how well either approach actually generalizes to a site it wasn't trained on.
 
-It's the corrected version of an earlier team notebook that had label leakage (explained below). The pipeline here is leakage-safe, fully reproducible, and evaluates two feature sets side by side instead of just one.
+The pipeline is leakage-audited, fully reproducible, and evaluates two feature sets side by side.
+
+A prototype web form for the pre-assessment model, built separately, is live at https://neuronova-alpha.vercel.app (code in [aditsawhney/Neuronova](https://github.com/aditsawhney/Neuronova)). The model it serves is not the exact artefact evaluated in the paper.
 
 ## The two models
 
@@ -15,11 +17,9 @@ It's the corrected version of an earlier team notebook that had label leakage (e
 
 Full metrics, fairness breakdowns and plots for both models are in `reports/`.
 
-## What changed from the original notebook
+## Leakage audit
 
-The original team implementation used `DX_3` (a one-hot slice of the diagnosis label itself) and `ScanDir ID` (a row identifier) as model inputs. Both leak the label instead of predicting it. It also mixed scoring metrics across models (SVM scored on F1, RF and XGBoost on accuracy), applied no probability calibration, and used a 0.3 classification threshold with no real justification behind it. `ADHD Index` isn't leaked in the same mechanical way, but the Phase 0 audit below found it's close to a proxy for the label (AUC of 0.93 on its own), so it's excluded from both models here.
-
-This rebuild fixes all of that. See `src/neuronova/data.py` for the leakage and redundancy audit, and `src/neuronova/train.py` for the calibration and scoring fixes.
+Before any model is trained, `src/neuronova/data.py` checks each field for whether it can carry the label or stand in for it. The diagnosis is the target, and `ScanDir ID` and `Site` are excluded because they identify the row or the recruiting site and say nothing about the child. `ADHD Index` is excluded from both models because on its own it predicts the diagnosis with an AUC of 0.93, which makes it close to a proxy for the label. All preprocessing is fitted on training data only, every model is scored on the same F1 against one fixed validation fold, probabilities are calibrated before ensembling, and the classification threshold is the standard 0.5.
 
 ## The main finding: cross-site generalization
 
@@ -37,15 +37,11 @@ We also checked whether Model A's advantage comes from fields that mostly encode
 
 Full numbers, the per-site breakdown, and bootstrap confidence intervals are in `reports/robustness/`.
 
-We also tried the obvious repair for site 1, standardizing the two scores within whichever rating instrument produced them (`src/neuronova/instrument_harmonization.py`). It doesn't work for the held-out case, and it can't. Site 1 is the only site that used its instrument, so when it's held out there is no data left to learn that instrument's scale from. Site 1 recall stays at 0.01 to 0.02 for both models, and overall leave-one-site-out ROC-AUC barely moves for Model B (0.757 to 0.760) and drops for Model A (0.764 to 0.742). Fixing it would need information outside this dataset, like published conversions between the two instruments or a common instrument at collection time.
-
-One more check (`src/neuronova/complete_case_check.py`) splits the results by whether a participant's behaviour scores were actually recorded. 311 of the 947 participants have no scores, because three sites never collected them, and those get a median value. The headline numbers turn out to blend two very different groups. With recorded scores, 5-fold ROC-AUC is 0.988 for Model B and 0.991 for Model A. With imputed scores it is 0.698 and 0.899. On the recorded-score group the two models are nearly the same, so most of Model A's lead in the pooled results comes from participants whose scores were missing, and with a site held out that lead disappears (both models land near chance on those participants). The cross-site gap itself does not go away on the recorded-score group: leave-one-site-out ROC-AUC there is 0.811 for Model B and 0.833 for Model A, against about 0.99 within sites. Results are in `reports/complete_case_by_group.csv`.
-
 ## Model selection was tested, not assumed
 
-Two design choices that were originally just inherited from an earlier build, excluding XGBoost from Model B and soft-voting three models instead of deploying one, were each re-tested properly rather than taken on faith. Every check ran across validation, held-out test, 5-fold CV, and leave-one-site-out.
+Two design choices, excluding XGBoost from Model B and soft-voting three models instead of using one, were each tested rather than assumed. Every check ran across validation, held-out test, 5-fold CV, and leave-one-site-out.
 
-XGBoost for Model B (`src/neuronova/xgboost_check.py`) wins the validation fold, F1 of 0.889 against the deployed roster's 0.870, but loses on every other evaluation, most clearly on leave-one-site-out ROC-AUC (0.712 vs. 0.757). That's the standard pattern of overfitting to the fold it was selected against, so excluding it was the right call, and now there's evidence behind it instead of an assumption.
+XGBoost for Model B (`src/neuronova/xgboost_check.py`) wins the validation fold, F1 of 0.889 against the retained roster's 0.870, but loses on every other evaluation, most clearly on leave-one-site-out ROC-AUC (0.712 vs. 0.757). That's the standard pattern of overfitting to the fold it was selected against, so excluding it was the right call, and now there's evidence behind it instead of an assumption.
 
 Ensemble versus solo best model (`src/neuronova/ensemble_check.py`) showed something similar. For Model B the ensemble wins on every metric. For Model A, a solo XGBoost model actually wins on held-out test F1 (0.924 vs. the ensemble's 0.909), but loses badly on leave-one-site-out ROC-AUC (0.711 vs. 0.764). The same pattern, winning in-distribution and losing cross-site, shows up independently in both checks.
 
@@ -66,10 +62,7 @@ adhd-project/
 │   ├── shap_analysis.py             # SHAP check for both models, each on its own top-ranked tree model
 │   ├── robustness.py                # bootstrap CIs, ablations, 5-fold CV vs. leave-one-site-out
 │   ├── xgboost_check.py             # tests whether XGBoost actually helps Model B (it doesn't)
-│   ├── ensemble_check.py            # tests soft-voted ensemble vs. solo best model, both feature sets
-│   ├── subgroup_ci.py               # bootstrap intervals on the sex and age-band results and their gaps
-│   ├── instrument_harmonization.py  # tries standardizing scores within rating instrument (negative result)
-│   └── complete_case_check.py       # splits results by whether behaviour scores were recorded or imputed
+│   └── ensemble_check.py            # tests soft-voted ensemble vs. solo best model, both feature sets
 ├── tests/
 │   └── test_pipeline.py             # guards against leakage, bad splits, mis-coded fields
 ├── models/                         # trained .joblib artifacts (generated)
@@ -79,7 +72,6 @@ adhd-project/
 │   ├── robustness/                  # bootstrap CIs, LOSO results, site-level breakdown
 │   ├── comparison_report.csv        # the A-vs-B headline comparison
 │   └── ensemble_vs_solo.csv         # ensemble vs. solo-best-model generalization check
-├── notebooks/                      # original team notebook (reference)
 ├── pyproject.toml
 └── uv.lock
 ```
@@ -114,9 +106,6 @@ uv run --env-file .env python src/neuronova/shap_analysis.py   # Phase 6: SHAP, 
 uv run --env-file .env python src/neuronova/robustness.py      # bootstrap CIs + leave-one-site-out
 uv run --env-file .env python src/neuronova/xgboost_check.py   # is XGBoost worth adding to Model B?
 uv run --env-file .env python src/neuronova/ensemble_check.py  # is the ensemble worth it vs. solo?
-uv run --env-file .env python src/neuronova/subgroup_ci.py     # intervals on the fairness gaps
-uv run --env-file .env python src/neuronova/instrument_harmonization.py  # does fixing the score scales help?
-uv run --env-file .env python src/neuronova/complete_case_check.py       # do imputed scores inflate the results?
 ```
 
 `features.py`, `train.py`, `evaluate.py`, `robustness.py`, `xgboost_check.py`, and `ensemble_check.py` all regenerate their outputs under `data/processed/`, `models/`, and `reports/`, so it's safe to rerun any of them from scratch. The split is deterministic (`random_state=42` throughout), so results should match across machines.
@@ -128,7 +117,7 @@ uv run --env-file .env python -m pytest -q tests
 
 ## Fairness audit
 
-Both models score lowest in the 14+ age band (Model A F1 of 0.828, Model B F1 of 0.774), and Model A shows a wider sex-based F1 gap than Model B (0.102 vs. 0.031). Neither result is established, though. The test set has only 72 girls (16 with ADHD) and 49 people aged 14 or over (14 with ADHD), and the bootstrap interval on every one of these gaps includes zero (`reports/subgroup_gaps.csv`). Model B's age-gap F1 interval only just does, with an upper bound of 0.007, so that one is the most suggestive. We treat both as things to check on a larger test set. Per-group point estimates are in `reports/model_a/audit_report.txt` and `reports/model_b/audit_report.txt`, and intervals are in `reports/subgroup_ci.csv`.
+Both models perform worst in the 14+ age band (Model A F1 of 0.828, Model B F1 of 0.774), which lines up with the Conners behavioral subscales being normed mostly on younger children. Model A also shows a wider sex-based F1 gap than Model B (0.102 vs. 0.031 difference), but the female subgroup in the test set is only 72 people, so this needs replication before we'd call it a stable finding. Details are in `reports/model_a/audit_report.txt` and `reports/model_b/audit_report.txt`.
 
 ## Dataset
 

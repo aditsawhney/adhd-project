@@ -1,15 +1,15 @@
 """
 Phase 2b: does including XGBoost in Model B's candidate pool actually help?
 
-train.py excludes XGBoost from Model B on the strength of an earlier,
-untested claim ("overfits on 700 rows / 5 features"). This script checks
-that claim directly: build Model B two ways -- current roster
+train.py excludes XGBoost from Model B, expecting that boosting would
+overfit 567 training rows and 5 inputs. This script tests that expectation
+directly: build Model B two ways -- current roster
 (ExtraTrees/RandomForest/SVM) and with XGBoost added to the candidate
 pool -- and compare across every evaluation already used elsewhere in
 this project (validation fold, held-out test set, 5-fold CV, and
 leave-one-site-out). If XGBoost only wins on the fold it was selected
 against and not elsewhere, that is the standard signature of overfitting
-to that fold, not a reason to change the deployed roster.
+to that fold, not a reason to change the retained roster.
 """
 import sys
 from pathlib import Path
